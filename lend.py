@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 
 # ページ設定
-st.set_page_config(page_title="23区 不動産AI分析・決定版", layout="wide")
+st.set_page_config(page_title="23区 不動産AI分析・家賃版", layout="wide")
 
-st.title("🤖 23区別：現在相場 × 人口動態 AI予測システム")
+st.title("🤖 23区別：家賃相場 × 人口動態 AI予測システム")
 st.write("最新の2025年相場と、公的統計に基づく2045年までの予測を統合解析します。")
 
 # --- 【重要1】23区すべての最新マスターデータ (2025年1月時点の相場) ---
@@ -111,5 +111,6 @@ elif base['hh_idx'] >= 1.05:
     st.info("✅ **【安定成長エリア】** 人口減少下でも需要が維持され、安定した運用が可能です。")
 else:
     st.warning("⚠️ **【選別エリア】** 市場の伸びが緩やかなため、物件の個別スペックが重要になります。")
+
 
 st.caption("出典：東京都総務局「将来推計人口(令和5年)」、国土交通省「地価公示」を基にAI推計")

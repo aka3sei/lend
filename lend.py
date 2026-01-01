@@ -115,22 +115,69 @@ else:
 
 st.caption("出典：東京都総務局「将来推計人口(令和5年)」、国土交通省「地価公示」を基にAI推計")
 
+# --- サイドバーに物件入力項目を追加 ---
 st.sidebar.divider()
-st.sidebar.header("💰 物件収支設定")
-price = st.sidebar.number_input("物件価格 (万円)", value=3000)
-maint_fee = st.sidebar.number_input("管理・修繕費/月 (円)", value=15000)
+st.sidebar.header("💰 物件個別収支設定")
+prop_price = st.sidebar.number_input("物件購入価格 (万円)", value=3500, step=100)
+admin_fee = st.sidebar.number_input("管理費・修繕積立金/月 (円)", value=12000, step=500)
+tax_annual = st.sidebar.number_input("固定資産税・都市計画税/年 (円)", value=80000, step=1000)
+vacancy_rate = st.sidebar.slider("想定空室リスク (%)", 0, 10, 5) / 100
 
-# 収益性の計算
-current_annual_rent = sim_list[0]['予測家賃'] * 12
-yield_rate = (current_annual_rent / (price * 10000)) * 100
-net_income = current_annual_rent - (maint_fee * 12)
-net_yield = (net_income / (price * 10000)) * 100
+# --- 収支シミュレーション計算ロジック ---
+cash_flow_results = []
 
-st.subheader("💰 物件収益シミュレーション")
-c1, c2 = st.columns(2)
+for row in sim_list:
+    year = row['年']
+    predicted_rent = row['予測家賃']
+    
+    # 年間総収入 (空室リスク考慮)
+    gross_revenue = int(predicted_rent * 12 * (1 - vacancy_rate))
+    
+    # 年間運営費用 (管理費・積立金 + 公租公課)
+    operating_expenses = (admin_fee * 12) + tax_annual
+    
+    # 営業純利益 (NOI: Net Operating Income)
+    noi = gross_revenue - operating_expenses
+    
+    # 実質利回り
+    net_yield = (noi / (prop_price * 10000)) * 100
+    
+    cash_flow_results.append({
+        "年": year,
+        "年間純収益": noi,
+        "実質利回り": round(net_yield, 2)
+    })
+
+df_cf = pd.DataFrame(cash_flow_results).set_index("年")
+
+# --- UI表示セクション ---
+st.divider()
+st.header("💰 物件収支シミュレーション (NOI分析)")
+st.write(f"エリア予測に基づき、この物件を **{prop_price}万円** で購入した場合の収益推移を算出しました。")
+
+c1, c2, c3 = st.columns(3)
 with c1:
-    st.metric("表面利回り", f"{yield_rate:.2f} %")
+    initial_yield = ( (sim_list[0]['予測家賃'] * 12) / (prop_price * 10000) ) * 100
+    st.metric("初期 表面利回り", f"{initial_yield:.2f} %")
 with c2:
-    st.metric("実質利回り (NOI)", f"{net_yield:.2f} %")
+    st.metric("初期 実質利回り", f"{cash_flow_results[0]['実質利回り']:.2f} %", "諸経費・空室考慮")
+with c3:
+    st.metric("20年後の実質利回り", f"{cash_flow_results[-1]['実質利回り']:.2f} %", 
+              f"{cash_flow_results[-1]['実質利回り'] - cash_flow_results[0]['実質利回り']:+.2f} %")
 
-st.write(f"※{selected_ward}の将来的な家賃変動を加味すると、20年後の想定実質利回りは **{((sim_list[-1]['予測家賃']*12 - maint_fee*12) / (price*10000))*100:.2f} %** と推計されます。")
+# 収益推移グラフ
+st.write("### 📉 20年間の純収益（キャッシュフロー）予測")
+st.area_chart(df_cf["年間純収益"])
+st.caption("※年間純収益 = (予測家賃 × 12ヶ月 × 稼働率) - 運営費用")
+
+# 投資判断コメント
+st.write("---")
+st.subheader("🏁 AIによる投資リターン評価")
+final_net_yield = cash_flow_results[-1]['実質利回り']
+
+if final_net_yield >= 4.0:
+    st.success(f"🌟 **【高収益維持】** 将来にわたって実質利回り4%以上を維持できる予測です。インフレに強く、出口戦略（売却）でも有利に働く可能性が高いです。")
+elif final_net_yield >= 2.5:
+    st.info(f"⚖️ **【堅実運用】** 派手さはありませんが、家賃の下支えが強く、安定したインカムゲインが期待できます。資産防衛に向いています。")
+else:
+    st.warning(f"🚩 **【収支注意】** 20年後の実質利回りが低下する予測です。購入価格の交渉か、管理費用の見直しが必要かもしれません。")

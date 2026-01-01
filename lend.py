@@ -114,3 +114,23 @@ else:
 
 
 st.caption("出典：東京都総務局「将来推計人口(令和5年)」、国土交通省「地価公示」を基にAI推計")
+
+st.sidebar.divider()
+st.sidebar.header("💰 物件収支設定")
+price = st.sidebar.number_input("物件価格 (万円)", value=3000)
+maint_fee = st.sidebar.number_input("管理・修繕費/月 (円)", value=15000)
+
+# 収益性の計算
+current_annual_rent = sim_list[0]['予測家賃'] * 12
+yield_rate = (current_annual_rent / (price * 10000)) * 100
+net_income = current_annual_rent - (maint_fee * 12)
+net_yield = (net_income / (price * 10000)) * 100
+
+st.subheader("💰 物件収益シミュレーション")
+c1, c2 = st.columns(2)
+with c1:
+    st.metric("表面利回り", f"{yield_rate:.2f} %")
+with c2:
+    st.metric("実質利回り (NOI)", f"{net_yield:.2f} %")
+
+st.write(f"※{selected_ward}の将来的な家賃変動を加味すると、20年後の想定実質利回りは **{((sim_list[-1]['予測家賃']*12 - maint_fee*12) / (price*10000))*100:.2f} %** と推計されます。")

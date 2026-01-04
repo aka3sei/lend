@@ -161,20 +161,18 @@ current_rent_prediction = int(base_rent_m2 * room_size)
 # 1. 送信するデータの作成
 # 1111.htmlが「rent」という名前で待っているので、合わせます
 res_data = {
-    "rent": current_rent_prediction
+    "rent": current_rent_prediction, # アプリの画面に表示されている現在の家賃
+    "growth": round(growth_rate, 1)   # AI診断に表示されている「約〇〇%変動」の数字
 }
 
-# 2. JavaScriptを埋め込んで親画面（1111.html）の最上層に送信
+# 送信部分
 st.components.v1.html(f"""
     <script>
         const resData = {json.dumps(res_data)};
-        
-        // window.top を使うことで、iframeを突き抜けて 1111.html に直接届けます
         if (window.top) {{
             window.top.postMessage(resData, "*");
         }}
-        
-        console.log("家賃データを1111.htmlへ送信しました:", resData);
+        console.log("家賃データを送信:", resData);
     </script>
 """, height=0)
 
@@ -210,3 +208,4 @@ elif final_net_yield >= 2.5:
     st.info(f"⚖️ **【堅実運用】** 派手さはありませんが、家賃の下支えが強く、安定したインカムゲインが期待できます。資産防衛に向いています。")
 else:
     st.warning(f"🚩 **【収支注意】** 20年後の実質利回りが低下する予測です。購入価格の交渉か、管理費用の見直しが必要かもしれません。")
+

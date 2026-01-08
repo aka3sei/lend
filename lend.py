@@ -75,14 +75,14 @@ df_sim = pd.DataFrame(sim_list).set_index("年")
 col1, col2, col3 = st.columns(3)
 
 # 差額の計算（エラー回避のため事前に定義）
-rent_diff = sim_list[-1]['予測家賃'] - sim_list[0]['予測家賃']
+rent_diff = sim_list[2]['予測家賃'] - sim_list[0]['予測家賃']
 
 with col1:
     st.metric("現在の相場家賃", f"{int(base['rent_m2'] * room_size):,} 円", f"{base['rent_m2']:,} 円/㎡")
 with col2:
-    st.metric("2045年 AI予測家賃", f"{sim_list[-1]['予測家賃']:,} 円", f"{rent_diff:,} 円")
+    st.metric("2035年 AI予測家賃", f"{sim_list[2]['予測家賃']:,} 円", f"{rent_diff:,} 円")
 with col3:
-    st.metric("世帯数指数(2045)", f"{sim_list[-1]['世帯数指数']}", f"{sim_list[-1]['世帯数指数']-100:+.1f}%")
+    st.metric("世帯数指数(2035)", f"{sim_list[2]['世帯数指数']}", f"{sim_list[2]['世帯数指数']-100:+.1f}%")
 
 st.divider()
 
@@ -210,3 +210,4 @@ elif final_net_yield >= 2.5:
     st.info(f"⚖️ **【堅実運用】** 派手さはありませんが、家賃の下支えが強く、安定したインカムゲインが期待できます。資産防衛に向いています。")
 else:
     st.warning(f"🚩 **【収支注意】** 20年後の実質利回りが低下する予測です。購入価格の交渉か、管理費用の見直しが必要かもしれません。")
+
